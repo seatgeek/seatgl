@@ -27,15 +27,17 @@ Controller.prototype.initialize = function () {
   document.body.appendChild(this.debug);
 
   this._startLoop();
+  this._openConnection();
 };
 
-// IIR filter
+// IIR filter: http://stackoverflow.com/questions/2272527/how-do-you-use-a-moving-average-to-filter-out-accelerometer-values-in-iphone-os
 //   xf = k * xf + (1.0 - k) * x;
 //   yf = k * yf + (1.0 - k) * y;
 
 Controller.prototype._handleMotion = function (evt) {
   this.previousMotion = this.currentMotion;
   this.currentMotion = {
+    // x: west to east, y: south to north, z: down to up
     acceleration: evt.acceleration,
     rotationRate: evt.rotationRate,
     interval: evt.interval
@@ -43,6 +45,7 @@ Controller.prototype._handleMotion = function (evt) {
 
   // Smoothing
   if (this.previousMotion) {
+    var k = 0.25;
     this.currentMotion.acceleration.x = k * this.previousMotion.acceleration.x + (1.0 - k) * this.currentMotion.acceleration.x;
     this.currentMotion.acceleration.y = k * this.previousMotion.acceleration.y + (1.0 - k) * this.currentMotion.acceleration.y;
     this.currentMotion.acceleration.z = k * this.previousMotion.acceleration.z + (1.0 - k) * this.currentMotion.acceleration.z;
@@ -50,7 +53,6 @@ Controller.prototype._handleMotion = function (evt) {
 };
 
 Controller.prototype._handleOrientation = function (evt) {
-  var k = 0.5;
   this.previousOrientation = this.currentOrientation;
   this.currentOrientation = {
     // yaw
@@ -62,6 +64,7 @@ Controller.prototype._handleOrientation = function (evt) {
   };
 
   if (this.previousOrientation) {
+    var k = 0.5;
     this.currentOrientation.alpha = k * this.previousOrientation.alpha + (1.0 - k) * this.currentOrientation.alpha;
     this.currentOrientation.beta = k * this.previousOrientation.beta + (1.0 - k) * this.currentOrientation.beta;
     this.currentOrientation.gamma = k * this.previousOrientation.gamma + (1.0 - k) * this.currentOrientation.gamma;
@@ -75,18 +78,23 @@ Controller.prototype._startLoop = function () {
 
     // TWEEN.update();
     if (that.currentMotion && that.currentOrientation) {
-      var pre = 5;
-      that.debug.innerHTML = "acc: " + that.currentMotion.acceleration.x.toFixed(pre) + ", " + that.currentMotion.acceleration.y.toFixed(pre) + ", " + that.currentMotion.acceleration.z.toFixed(pre) + " | " +
-                             "rot: " + that.currentMotion.rotationRate + " | " +
-                             "int: " + that.currentMotion.interval.toFixed(pre) + " | " +
+      var pre = 3;
+      that.debug.innerHTML = "acc: " + that.currentMotion.acceleration.x.toFixed(pre) + ", " + that.currentMotion.acceleration.y.toFixed(pre) + ", " + that.currentMotion.acceleration.z.toFixed(pre) +
                              "<br>" +
-                             "abs: " + that.currentOrientation.absolute + " | " +
+                             "rot: " + that.currentMotion.rotationRate.alpha.toFixed(pre) + ", " + that.currentMotion.rotationRate.beta.toFixed(pre) + ", " + that.currentMotion.rotationRate.gamma.toFixed(pre) +
+                             "<br>" +
+                             "int: " + that.currentMotion.interval.toFixed(pre) +
+                             "<br>" +
                              "alp: " + that.currentOrientation.alpha.toFixed(pre) + " | " +
                              "bet: " + that.currentOrientation.beta.toFixed(pre) + " | " +
                              "gam: " + that.currentOrientation.gamma.toFixed(pre);
     }
   }
   render();
+};
+
+Controller.prototype._openConnection = function () {
+  this.socket = new WebSocket("ws://localhost:5000/api";
 };
 
 </script>
