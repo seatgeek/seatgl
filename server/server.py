@@ -31,7 +31,6 @@ def consolesocket():
 @app.route('/clients')
 def api():
     ws = request.environ['wsgi.websocket']
-    clients.add(ws)
     _id = request.args.get('id')
     clients[_id] = ws
     print "clients: {0}".format(clients)

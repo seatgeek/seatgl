@@ -19,7 +19,6 @@
 <script src="/vendor/stats.js"></script>
 <script src="/vendor/underscore.js"></script>
 <script src="/vendor/zepto.js"></script>
-<script src="/vendor/three.js"></script>
 <script>
 
 function Controller (domElement) {
@@ -115,7 +114,7 @@ Controller.prototype._startLoop = function () {
 };
 
 Controller.prototype._openConnection = function () {
-  this.socket = new WebSocket("ws://localhost:5000/clients");
+  this.socket = new WebSocket("ws://localhost:5000/clients?id=" + Math.floor(Math.random() * 1000000));
   this.socket.onmessage = _.bind(this._onMessage, this);
   this.socket.onclose = function () { alert("Connection lost"); };
 };
