@@ -71,7 +71,7 @@ Controller.prototype._handleOrientation = function (evt) {
   };
 
   if (this.previousOrientation) {
-    var k = 0.5;
+    var k = 0.3;
     this.currentOrientation.alpha = k * this.previousOrientation.alpha + (1.0 - k) * this.currentOrientation.alpha;
     this.currentOrientation.beta = k * this.previousOrientation.beta + (1.0 - k) * this.currentOrientation.beta;
     this.currentOrientation.gamma = k * this.previousOrientation.gamma + (1.0 - k) * this.currentOrientation.gamma;
@@ -88,7 +88,7 @@ Controller.prototype._startLoop = function () {
       that.stats.update();
     }
     time = Date.now();
-    if (time - prevTime > 50) {
+    if (time - prevTime > 30) {
       that._pushUpdate();
       prevTime = time;
     }
@@ -109,8 +109,9 @@ Controller.prototype._startLoop = function () {
 };
 
 Controller.prototype._openConnection = function () {
-  this.socket = new WebSocket("ws://localhost:5000/clients");
+  this.socket = new WebSocket("ws://localhost:5000/clients?id=" + Math.floor(Math.random() * 1000000));
   this.socket.onmessage = _.bind(this._onMessage, this);
+  this.socket.onclose = function () { alert("Connection lost"); };
 };
 
 Controller.prototype._pushUpdate = function () {

@@ -8,7 +8,8 @@
 
 <style type="text/css">
 .console {
-  width: 640px
+  position: absolute;
+  font-size: 12px;
 }
 </style>
 
@@ -19,6 +20,7 @@
 <script src="/vendor/stats.js"></script>
 <script src="/vendor/underscore.js"></script>
 <script src="/vendor/zepto.js"></script>
+<script src="/vendor/three.js"></script>
 <script>
 
 function Console (domElement) {
@@ -26,6 +28,41 @@ function Console (domElement) {
 }
 
 Console.prototype.initialize = function () {
+	var container = document.createElement('div');
+	document.body.appendChild(container);
+
+	this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
+	this.camera.position.y = 150;
+	this.camera.position.z = 500;
+
+	this.scene = new THREE.Scene();
+
+	// Cube
+	var geometry = new THREE.CubeGeometry(200, 200, 200);
+	for (var i = 0; i < geometry.faces.length; i ++) {
+		geometry.faces[ i ].color.setHex( Math.random() * 0xffffff );
+	}
+	var material = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors });
+	this.cube = new THREE.Mesh(geometry, material);
+	this.cube.position.y = 150;
+	this.scene.add(this.cube);
+
+	// Plane
+	var geometry = new THREE.PlaneGeometry(200, 200);
+	geometry.applyMatrix(new THREE.Matrix4().makeRotationX(- Math.PI / 2));
+	var material = new THREE.MeshBasicMaterial({ color: 0xe0e0e0 });
+	var plane = new THREE.Mesh(geometry, material);
+	this.scene.add(plane);
+
+	this.renderer = new THREE.WebGLRenderer();
+	this.renderer.setSize(window.innerWidth, window.innerHeight);
+	container.appendChild(this.renderer.domElement);
+
+  // document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+  // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+  // document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+  // window.addEventListener( 'resize', onWindowResize, false );
+
   this._initStats();
   this._startLoop();
   this._openConnection();
@@ -38,6 +75,7 @@ Console.prototype._startLoop = function () {
     if (that.stats) {
       that.stats.update();
     }
+    that.renderer.render(that.scene, that.camera);
   }
   render();
 };
@@ -48,14 +86,18 @@ Console.prototype._openConnection = function () {
 };
 
 Console.prototype._onMessage = function (msg) {
+  this.controllerStats.update();
   try {
     msg = JSON.parse(msg.data);
   } catch (e) {
     console.log("Bad message:", msg);
     return;
   }
-  console.log(msg)
   this._renderDebug(msg.data);
+
+  this.cube.rotation.x = Math.PI * msg.data.orientation.beta / 180;
+  this.cube.rotation.y = Math.PI * msg.data.orientation.alpha / 180;
+  this.cube.rotation.z = -1 * Math.PI * msg.data.orientation.gamma / 180;
 };
 
 Console.prototype._renderDebug = function (data) {
@@ -77,6 +119,12 @@ Console.prototype._initStats = function () {
   this.stats.setMode(0);
   this.stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0';
   document.body.appendChild(this.stats.domElement);
+  
+  this.controllerStats = new Stats();
+  // 0: fps, 1: ms
+  this.controllerStats.setMode(0);
+  this.controllerStats.domElement.style.cssText = 'position: absolute; right: 0; top: 100px';
+  document.body.appendChild(this.controllerStats.domElement);
 };
 
 </script>
