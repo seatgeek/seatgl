@@ -1,0 +1,2 @@
+static: python -m SimpleHTTPServer
+
