@@ -43,18 +43,32 @@ Console.prototype._startLoop = function () {
 };
 
 Console.prototype._openConnection = function () {
-  this.socket = new WebSocket("ws://localhost:5000/api");
+  this.socket = new WebSocket("ws://localhost:5000/consolesocket");
   this.socket.onmessage = _.bind(this._onMessage, this);
 };
 
 Console.prototype._onMessage = function (msg) {
   try {
-    msg = JSON.parse(msg);
+    msg = JSON.parse(msg.data);
   } catch (e) {
     console.log("Bad message:", msg);
     return;
   }
-  console.log(msg);
+  console.log(msg)
+  this._renderDebug(msg.data);
+};
+
+Console.prototype._renderDebug = function (data) {
+  var pre = 2;
+  this.domElement.innerHTML = "acc: " + data.motion.acceleration.x.toFixed(pre) + ", " + data.motion.acceleration.y.toFixed(pre) + ", " + data.motion.acceleration.z.toFixed(pre) +
+                              "<br>" +
+                              "rot: " + data.motion.rotationRate.alpha.toFixed(pre) + ", " + data.motion.rotationRate.beta.toFixed(pre) + ", " + data.motion.rotationRate.gamma.toFixed(pre) +
+                              "<br>" +
+                              "int: " + data.motion.interval.toFixed(pre) +
+                              "<br>" +
+                              "alp: " + data.orientation.alpha.toFixed(pre) + " | " +
+                              "bet: " + data.orientation.beta.toFixed(pre) + " | " +
+                              "gam: " + data.orientation.gamma.toFixed(pre);
 };
 
 Console.prototype._initStats = function () {
