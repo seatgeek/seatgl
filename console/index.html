@@ -23,6 +23,9 @@
 <script src="/vendor/three.js"></script>
 <script>
 
+var CUBE_SIZE = 200;
+var CUBE_SPACING = 300;
+
 function Console (domElement) {
   this.domElement = domElement;
 }
@@ -33,14 +36,14 @@ Console.prototype.initialize = function () {
   var container = document.createElement('div');
   document.body.appendChild(container);
 
-  this.camera = new THREE.PerspectiveCamera(15, window.innerWidth / window.innerHeight, 1, 10000);
+  this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 5000);
   this.camera.position.y = 150;
-  this.camera.position.z = 4000;
+  this.camera.position.z = 2000;
 
   this.scene = new THREE.Scene();
 
   // Plane
-  var geometry = new THREE.PlaneGeometry(200, 200);
+  var geometry = new THREE.PlaneGeometry(2000, 200);
   geometry.applyMatrix(new THREE.Matrix4().makeRotationX(- Math.PI / 2));
   var material = new THREE.MeshBasicMaterial({ color: 0xe0e0e0 });
   var plane = new THREE.Mesh(geometry, material);
@@ -62,17 +65,27 @@ Console.prototype.initialize = function () {
 
 Console.prototype._addCube = function (clientId) {
   // Cube
-  var geometry = new THREE.CubeGeometry(200, 200, 200);
+  var geometry = new THREE.CubeGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
   for (var i = 0; i < geometry.faces.length; i ++) {
     geometry.faces[ i ].color.setHex( Math.random() * 0xffffff );
   }
   var material = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors });
   cube = new THREE.Mesh(geometry, material);
   cube.position.y = 150;
-  cube.position.x = -(Object.keys(this.cubes).length) * 500
   this.cubes[clientId] = cube
+  this._positionCubes();
   this.scene.add(this.cubes[clientId]);
 }
+
+Console.prototype._positionCubes = function () {
+  var c = _.size(this.cubes),
+      totalWidth = CUBE_SIZE * c + CUBE_SPACING * (c - 1),
+      pos = 0 - totalWidth / 2 + CUBE_SIZE / 2;
+  _.each(this.cubes, function (cube, clientId) {
+    cube.position.x = pos;
+    pos += CUBE_SIZE + CUBE_SPACING;
+  });
+};
 
 Console.prototype._startLoop = function () {
   var that = this;
