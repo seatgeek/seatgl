@@ -9,7 +9,7 @@
                 return false;
             });
             if ("WebSocket" in window) {
-                ws = new WebSocket("ws://localhost:5000/api");
+                ws = new WebSocket("ws://localhost:5000/clients");
                 ws.onmessage = function (msg) {
                     $("#log").append("<p>"+msg.data+"</p>")
                 };

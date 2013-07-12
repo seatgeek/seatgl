@@ -6,26 +6,41 @@ from flask import Flask, request, render_template
 app = Flask(__name__)
 app.debug = True
 
-clients = []
+clients = set()
+consoles = []
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
-@app.route('/api')
+@app.route('/console')
+def console():
+    return render_template('console.html')
+
+
+@app.route('/consolesocket')
+def consolesocket():
+    ws = request.environ['wsgi.websocket']
+    consoles.append(ws)
+    while True:
+        message = ws.receive()
+        ws.send(message)
+
+@app.route('/clients')
 def api():
     ws = request.environ['wsgi.websocket']
-    clients.append(ws)
+    clients.add(ws)
     print "clients: {0}".format(clients)
     while True:
         message = ws.receive()
         if message is None:
             gevent.sleep(0)
-        for key, client in enumerate(clients):
+        for key, console in enumerate(consoles):
             print "looping: {}".format(key)
             try:
-                client.send(message)
+                console.send(message)
+                ws.send('ok {0}'.format(key))
             except:
                 print 'client disconnected'
                 # clients.remove(client)
