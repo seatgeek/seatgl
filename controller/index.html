@@ -1,1 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Language" content="en" />
+</head>
+<body>
+
 Controller
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.1/underscore-min.js"></script>
+<script>
+
+function Controller () {
+  this.currentOrientation = null;
+  this.previousOrientation = null;
+  this.currentMotion = null;
+  this.previousMotion = null;
+}
+
+Controller.prototype.initialize = function () {
+  window.addEventListener("devicemotion", _.bind(this._handleMotion, this), true);
+  window.addEventListener("deviceorientation", _.bind(this._handleOrientation, this), true);
+
+  this.debug = document.createElement("div");
+  this.debug.style.cssText = "position: absolute; top: 0; right: 0; width: 400px;"
+  document.body.appendChild(this.debug);
+
+  this._startLoop();
+};
+
+// IIR filter
+//   xf = k * xf + (1.0 - k) * x;
+//   yf = k * yf + (1.0 - k) * y;
+
+Controller.prototype._handleMotion = function (evt) {
+  this.previousMotion = this.currentMotion;
+  this.currentMotion = {
+    acceleration: evt.acceleration,
+    rotationRate: evt.rotationRate,
+    interval: evt.interval
+  };
+
+  // Smoothing
+  if (this.previousMotion) {
+    this.currentMotion.acceleration.x = k * this.previousMotion.acceleration.x + (1.0 - k) * this.currentMotion.acceleration.x;
+    this.currentMotion.acceleration.y = k * this.previousMotion.acceleration.y + (1.0 - k) * this.currentMotion.acceleration.y;
+    this.currentMotion.acceleration.z = k * this.previousMotion.acceleration.z + (1.0 - k) * this.currentMotion.acceleration.z;
+  }
+};
+
+Controller.prototype._handleOrientation = function (evt) {
+  var k = 0.5;
+  this.previousOrientation = this.currentOrientation;
+  this.currentOrientation = {
+    // yaw
+    alpha: evt.alpha,
+    // pitch
+    beta: evt.beta,
+    // roll
+    gamma: evt.gamma
+  };
+
+  if (this.previousOrientation) {
+    this.currentOrientation.alpha = k * this.previousOrientation.alpha + (1.0 - k) * this.currentOrientation.alpha;
+    this.currentOrientation.beta = k * this.previousOrientation.beta + (1.0 - k) * this.currentOrientation.beta;
+    this.currentOrientation.gamma = k * this.previousOrientation.gamma + (1.0 - k) * this.currentOrientation.gamma;
+  }
+};
+
+Controller.prototype._startLoop = function () {
+  var that = this;
+  function render() {
+  	webkitRequestAnimationFrame(render);
+
+    // TWEEN.update();
+    if (that.currentMotion && that.currentOrientation) {
+      var pre = 5;
+      that.debug.innerHTML = "acc: " + that.currentMotion.acceleration.x.toFixed(pre) + ", " + that.currentMotion.acceleration.y.toFixed(pre) + ", " + that.currentMotion.acceleration.z.toFixed(pre) + " | " +
+                             "rot: " + that.currentMotion.rotationRate + " | " +
+                             "int: " + that.currentMotion.interval.toFixed(pre) + " | " +
+                             "<br>" +
+                             "abs: " + that.currentOrientation.absolute + " | " +
+                             "alp: " + that.currentOrientation.alpha.toFixed(pre) + " | " +
+                             "bet: " + that.currentOrientation.beta.toFixed(pre) + " | " +
+                             "gam: " + that.currentOrientation.gamma.toFixed(pre);
+    }
+  }
+  render();
+};
+
+</script>
+
+<script>
+
+var controller = new Controller;
+controller.initialize();
+
+</script>
+
+</body>
+</html>
