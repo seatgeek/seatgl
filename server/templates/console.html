@@ -5,7 +5,7 @@
     <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
             if ("WebSocket" in window) {
-                ws = new WebSocket("ws://localhost:5000/consolesocket");
+                ws = new WebSocket("ws://zackbook-pro.local:5000/consolesocket");
                 ws.onmessage = function (msg) {
                     $("#log").append("<p>"+msg.data+"</p>")
                 };

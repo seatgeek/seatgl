@@ -14,7 +14,7 @@
 </style>
 
 <div class="console">
-  
+
 </div>
 
 <script src="/vendor/stats.js"></script>
@@ -28,6 +28,8 @@ function Console (domElement) {
 }
 
 Console.prototype.initialize = function () {
+  this.cubes = {}
+
 	var container = document.createElement('div');
 	document.body.appendChild(container);
 
@@ -37,16 +39,6 @@ Console.prototype.initialize = function () {
 
 	this.scene = new THREE.Scene();
 
-	// Cube
-	var geometry = new THREE.CubeGeometry(200, 200, 200);
-	for (var i = 0; i < geometry.faces.length; i ++) {
-		geometry.faces[ i ].color.setHex( Math.random() * 0xffffff );
-	}
-	var material = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors });
-	this.cube = new THREE.Mesh(geometry, material);
-	this.cube.position.y = 150;
-	this.scene.add(this.cube);
-
 	// Plane
 	var geometry = new THREE.PlaneGeometry(200, 200);
 	geometry.applyMatrix(new THREE.Matrix4().makeRotationX(- Math.PI / 2));
@@ -54,7 +46,7 @@ Console.prototype.initialize = function () {
 	var plane = new THREE.Mesh(geometry, material);
 	this.scene.add(plane);
 
-	this.renderer = new THREE.WebGLRenderer();
+	this.renderer = new THREE.CanvasRenderer();
 	this.renderer.setSize(window.innerWidth, window.innerHeight);
 	container.appendChild(this.renderer.domElement);
 
@@ -67,6 +59,20 @@ Console.prototype.initialize = function () {
   this._startLoop();
   this._openConnection();
 };
+
+Console.prototype._addCube = function (clientId) {
+  // Cube
+  var geometry = new THREE.CubeGeometry(200, 200, 200);
+  for (var i = 0; i < geometry.faces.length; i ++) {
+    geometry.faces[ i ].color.setHex( Math.random() * 0xffffff );
+  }
+  var material = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors });
+  cube = new THREE.Mesh(geometry, material);
+  cube.position.y = 150;
+  cube.position.x = -(Object.keys(this.cubes).length + 1) * 210
+  this.cubes[clientId] = cube
+  this.scene.add(this.cubes[clientId]);
+}
 
 Console.prototype._startLoop = function () {
   var that = this;
@@ -81,7 +87,7 @@ Console.prototype._startLoop = function () {
 };
 
 Console.prototype._openConnection = function () {
-  this.socket = new WebSocket("ws://localhost:5000/consolesocket");
+  this.socket = new WebSocket("ws://zackbook-pro.local:5000/consolesocket");
   this.socket.onmessage = _.bind(this._onMessage, this);
 };
 
@@ -94,10 +100,16 @@ Console.prototype._onMessage = function (msg) {
     return;
   }
   this._renderDebug(msg.data);
+  clientId = msg.clientId;
 
-  this.cube.rotation.x = Math.PI * msg.data.orientation.beta / 180;
-  this.cube.rotation.y = Math.PI * msg.data.orientation.alpha / 180;
-  this.cube.rotation.z = -1 * Math.PI * msg.data.orientation.gamma / 180;
+  if (this.cubes[clientId] == undefined) {
+    this._addCube(clientId);
+  }
+
+  cube = this.cubes[clientId];
+  cube.rotation.x = Math.PI * msg.data.orientation.beta / 180;
+  cube.rotation.y = Math.PI * msg.data.orientation.alpha / 180;
+  cube.rotation.z = -1 * Math.PI * msg.data.orientation.gamma / 180;
 };
 
 Console.prototype._renderDebug = function (data) {
@@ -119,7 +131,7 @@ Console.prototype._initStats = function () {
   this.stats.setMode(0);
   this.stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0';
   document.body.appendChild(this.stats.domElement);
-  
+
   this.controllerStats = new Stats();
   // 0: fps, 1: ms
   this.controllerStats.setMode(0);

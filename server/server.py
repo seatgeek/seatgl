@@ -1,3 +1,5 @@
+import json
+
 import gevent
 from geventwebsocket.handler import WebSocketHandler
 from gevent.pywsgi import WSGIServer
@@ -30,15 +32,20 @@ def consolesocket():
 
 @app.route('/clients')
 def api():
-    ws = request.environ['wsgi.websocket']
     _id = request.args.get('id')
+    ws = request.environ['wsgi.websocket']
     clients[_id] = ws
-    print "clients: {0}".format(clients)
     while True:
         message = ws.receive()
         if message is None:
             gevent.sleep(0)
-        for key, console in enumerate(consoles):
+        try:
+            msg = json.loads(message)
+            msg['clientId'] = _id
+            message = json.dumps(msg)
+        except:
+            gevent.sleep(0)
+        for console in consoles:
             try:
                 console.send(message)
             except:
