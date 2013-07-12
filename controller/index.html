@@ -3,17 +3,13 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Language" content="en" />
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 
-<style type="text/css">
-.controller {
-  width: 640px
-}
-</style>
-
 <div class="controller">
 
+  <div id="logo"></div>
 </div>
 
 <script src="/vendor/stats.js"></script>
@@ -34,7 +30,7 @@ Controller.prototype.initialize = function () {
   window.addEventListener("deviceorientation", _.bind(this._handleOrientation, this), true);
 
   this.debug = document.createElement("div");
-  this.debug.style.cssText = "";
+  this.debug.style.cssText = "display: none;";
   this.domElement.appendChild(this.debug);
 
   this._initStats();
@@ -76,7 +72,7 @@ Controller.prototype._handleOrientation = function (evt) {
   };
 
   if (this.previousOrientation) {
-    var k = 0.25;
+    var k = 0.3;
     this.currentOrientation.alpha = k * this.previousOrientation.alpha + (1.0 - k) * this.currentOrientation.alpha;
     this.currentOrientation.beta = k * this.previousOrientation.beta + (1.0 - k) * this.currentOrientation.beta;
     this.currentOrientation.gamma = k * this.previousOrientation.gamma + (1.0 - k) * this.currentOrientation.gamma;
@@ -93,7 +89,7 @@ Controller.prototype._startLoop = function () {
       that.stats.update();
     }
     time = Date.now();
-    if (time - prevTime > 50) {
+    if (time - prevTime > 30) {
       that._pushUpdate();
       prevTime = time;
     }
@@ -150,7 +146,7 @@ Controller.prototype._initStats = function () {
   this.stats = new Stats();
   // 0: fps, 1: ms
   this.stats.setMode(0);
-  this.stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0';
+  this.stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0; display: none;';
   document.body.appendChild(this.stats.domElement);
 };
 
@@ -162,6 +158,21 @@ var controller = new Controller($(".controller")[0]);
 controller.initialize();
 
 </script>
+
+<script language="javascript" type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+<script>
+
+  $(function() {
+    $('body').scrollTop(1);
+  });
+
+  document.ontouchmove = function(event){
+      event.preventDefault();
+  }
+
+</script>
+
 
 </body>
 </html>

@@ -92,6 +92,7 @@ Console.prototype._openConnection = function () {
 };
 
 Console.prototype._onMessage = function (msg) {
+  this.controllerStats.update();
   try {
     msg = JSON.parse(msg.data);
   } catch (e) {
@@ -131,6 +132,12 @@ Console.prototype._initStats = function () {
   this.stats.setMode(0);
   this.stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0';
   document.body.appendChild(this.stats.domElement);
+  
+  this.controllerStats = new Stats();
+  // 0: fps, 1: ms
+  this.controllerStats.setMode(0);
+  this.controllerStats.domElement.style.cssText = 'position: absolute; right: 0; top: 100px';
+  document.body.appendChild(this.controllerStats.domElement);
 };
 
 </script>
