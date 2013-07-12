@@ -30,25 +30,25 @@ function Console (domElement) {
 Console.prototype.initialize = function () {
   this.cubes = {}
 
-	var container = document.createElement('div');
-	document.body.appendChild(container);
+  var container = document.createElement('div');
+  document.body.appendChild(container);
 
-	this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
-	this.camera.position.y = 150;
-	this.camera.position.z = 500;
+  this.camera = new THREE.PerspectiveCamera(15, window.innerWidth / window.innerHeight, 1, 10000);
+  this.camera.position.y = 150;
+  this.camera.position.z = 4000;
 
-	this.scene = new THREE.Scene();
+  this.scene = new THREE.Scene();
 
-	// Plane
-	var geometry = new THREE.PlaneGeometry(200, 200);
-	geometry.applyMatrix(new THREE.Matrix4().makeRotationX(- Math.PI / 2));
-	var material = new THREE.MeshBasicMaterial({ color: 0xe0e0e0 });
-	var plane = new THREE.Mesh(geometry, material);
-	this.scene.add(plane);
+  // Plane
+  var geometry = new THREE.PlaneGeometry(200, 200);
+  geometry.applyMatrix(new THREE.Matrix4().makeRotationX(- Math.PI / 2));
+  var material = new THREE.MeshBasicMaterial({ color: 0xe0e0e0 });
+  var plane = new THREE.Mesh(geometry, material);
+  this.scene.add(plane);
 
-	this.renderer = new THREE.CanvasRenderer();
-	this.renderer.setSize(window.innerWidth, window.innerHeight);
-	container.appendChild(this.renderer.domElement);
+  this.renderer = new THREE.CanvasRenderer();
+  this.renderer.setSize(window.innerWidth, window.innerHeight);
+  container.appendChild(this.renderer.domElement);
 
   // document.addEventListener( 'mousedown', onDocumentMouseDown, false );
   // document.addEventListener( 'touchstart', onDocumentTouchStart, false );
@@ -69,7 +69,7 @@ Console.prototype._addCube = function (clientId) {
   var material = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors });
   cube = new THREE.Mesh(geometry, material);
   cube.position.y = 150;
-  cube.position.x = -(Object.keys(this.cubes).length + 1) * 210
+  cube.position.x = -(Object.keys(this.cubes).length) * 500
   this.cubes[clientId] = cube
   this.scene.add(this.cubes[clientId]);
 }
@@ -77,7 +77,7 @@ Console.prototype._addCube = function (clientId) {
 Console.prototype._startLoop = function () {
   var that = this;
   function render() {
-  	requestAnimationFrame(render);
+    requestAnimationFrame(render);
     if (that.stats) {
       that.stats.update();
     }
@@ -99,14 +99,13 @@ Console.prototype._onMessage = function (msg) {
     console.log("Bad message:", msg);
     return;
   }
-  this._renderDebug(msg.data);
-  clientId = msg.clientId;
+  // this._renderDebug(msg.data);
 
-  if (this.cubes[clientId] == undefined) {
-    this._addCube(clientId);
+  if (this.cubes[msg.clientId] == undefined) {
+    this._addCube(msg.clientId);
   }
 
-  cube = this.cubes[clientId];
+  var cube = this.cubes[msg.clientId];
   cube.rotation.x = Math.PI * msg.data.orientation.beta / 180;
   cube.rotation.y = Math.PI * msg.data.orientation.alpha / 180;
   cube.rotation.z = -1 * Math.PI * msg.data.orientation.gamma / 180;
