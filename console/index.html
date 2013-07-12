@@ -103,7 +103,6 @@ Console.prototype._onMessage = function (msg) {
   clientId = msg.clientId;
 
   if (this.cubes[clientId] == undefined) {
-    console.log('adding');
     this._addCube(clientId);
   }
 
@@ -132,7 +131,7 @@ Console.prototype._initStats = function () {
   this.stats.setMode(0);
   this.stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0';
   document.body.appendChild(this.stats.domElement);
-  
+
   this.controllerStats = new Stats();
   // 0: fps, 1: ms
   this.controllerStats.setMode(0);

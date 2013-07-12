@@ -111,12 +111,10 @@ Controller.prototype._startLoop = function () {
 
 Controller.prototype._getClientId = function () {
   var clientId = localStorage.getItem("clientId");
-  alert(clientId);
   if (clientId == undefined) {
     clientId = Math.floor(Math.random() * 1000000);
     localStorage.setItem("clientId", clientId);
   }
-  alert(clientId);
   return clientId;
 }
 
