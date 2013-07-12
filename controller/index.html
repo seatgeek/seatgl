@@ -84,11 +84,18 @@ Controller.prototype._handleOrientation = function (evt) {
 };
 
 Controller.prototype._startLoop = function () {
-  var that = this;
+  var that = this,
+      prevTime = Date.now(),
+      time = prevTime;
   function render() {
   	webkitRequestAnimationFrame(render);
     if (that.stats) {
       that.stats.update();
+    }
+    time = Date.now();
+    if (time - prevTime > 50) {
+      that._pushUpdate();
+      prevTime = time;
     }
     if (that.currentMotion && that.currentOrientation) {
       var pre = 2;
@@ -107,17 +114,19 @@ Controller.prototype._startLoop = function () {
 };
 
 Controller.prototype._openConnection = function () {
-  this.socket = new WebSocket("ws://localhost:5000/api");
+  this.socket = new WebSocket("ws://localhost:5000/clients");
   this.socket.onmessage = _.bind(this._onMessage, this);
 };
 
 Controller.prototype._pushUpdate = function () {
-  this.socket.send(JSON.stringify({
-    data: {
-      orientation: this.currentOrientation,
-      motion: this.currentMotion
-    }
-  }));
+  if (this.socket && this.socket.readyState === 1) {
+    this.socket.send(JSON.stringify({
+      data: {
+        orientation: this.currentOrientation,
+        motion: this.currentMotion
+      }
+    }));
+  }
 };
 
 Controller.prototype._onMessage = function (msg) {
