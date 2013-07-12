@@ -13,7 +13,7 @@
 </style>
 
 <div class="controller">
-  
+
 </div>
 
 <script src="/vendor/stats.js"></script>
@@ -113,8 +113,20 @@ Controller.prototype._startLoop = function () {
   render();
 };
 
+Controller.prototype._getClientId = function () {
+  var clientId = localStorage.getItem("clientId");
+  alert(clientId);
+  if (clientId == undefined) {
+    clientId = Math.floor(Math.random() * 1000000);
+    localStorage.setItem("clientId", clientId);
+  }
+  alert(clientId);
+  return clientId;
+}
+
 Controller.prototype._openConnection = function () {
-  this.socket = new WebSocket("ws://localhost:5000/clients?id=" + Math.floor(Math.random() * 1000000));
+  clientId = this._getClientId();
+  this.socket = new WebSocket("ws://zackbook-pro.local:5000/clients?id=" + clientId);
   this.socket.onmessage = _.bind(this._onMessage, this);
   this.socket.onclose = function () { alert("Connection lost"); };
 };
