@@ -8,17 +8,21 @@
 
 Console
 
+<script src="/vendor/stats.js"></script>
+<script src="/vendor/underscore.js"></script>
+<script src="/vendor/zepto.js"></script>
 <script>
 
 function Console () {
   
 }
 
-Controller.prototype.initialize = function () {
+Console.prototype.initialize = function () {
   this._startLoop();
+  this._openConnection();
 };
 
-Controller.prototype._startLoop = function () {
+Console.prototype._startLoop = function () {
   var that = this;
   function render() {
   	requestAnimationFrame(render);
@@ -26,6 +30,15 @@ Controller.prototype._startLoop = function () {
     // TWEEN.update();
   }
   render();
+};
+
+Console.prototype._openConnection = function () {
+  this.socket = new WebSocket("ws://localhost:5000/api");
+  this.socket.onmessage = _.bind(this._onMessage, this);
+};
+
+Console.prototype._onMessage = function (msg) {
+  console.log(msg);
 };
 
 </script>

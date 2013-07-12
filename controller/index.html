@@ -6,16 +6,27 @@
 </head>
 <body>
 
-Controller
+<style type="text/css">
+.controller {
+  width: 640px
+}
+</style>
 
-<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.1/underscore-min.js"></script>
+<div class="controller">
+  
+</div>
+
+<script src="/vendor/stats.js"></script>
+<script src="/vendor/underscore.js"></script>
+<script src="/vendor/zepto.js"></script>
 <script>
 
-function Controller () {
+function Controller (domElement) {
   this.currentOrientation = null;
   this.previousOrientation = null;
   this.currentMotion = null;
   this.previousMotion = null;
+  this.domElement = domElement;
 }
 
 Controller.prototype.initialize = function () {
@@ -23,9 +34,10 @@ Controller.prototype.initialize = function () {
   window.addEventListener("deviceorientation", _.bind(this._handleOrientation, this), true);
 
   this.debug = document.createElement("div");
-  this.debug.style.cssText = "position: absolute; top: 0; right: 0; width: 400px;"
-  document.body.appendChild(this.debug);
+  this.debug.style.cssText = "";
+  this.domElement.appendChild(this.debug);
 
+  this._initStats();
   this._startLoop();
   this._openConnection();
 };
@@ -75,10 +87,11 @@ Controller.prototype._startLoop = function () {
   var that = this;
   function render() {
   	webkitRequestAnimationFrame(render);
-
-    // TWEEN.update();
+    if (that.stats) {
+      that.stats.update();
+    }
     if (that.currentMotion && that.currentOrientation) {
-      var pre = 3;
+      var pre = 2;
       that.debug.innerHTML = "acc: " + that.currentMotion.acceleration.x.toFixed(pre) + ", " + that.currentMotion.acceleration.y.toFixed(pre) + ", " + that.currentMotion.acceleration.z.toFixed(pre) +
                              "<br>" +
                              "rot: " + that.currentMotion.rotationRate.alpha.toFixed(pre) + ", " + that.currentMotion.rotationRate.beta.toFixed(pre) + ", " + that.currentMotion.rotationRate.gamma.toFixed(pre) +
@@ -94,14 +107,36 @@ Controller.prototype._startLoop = function () {
 };
 
 Controller.prototype._openConnection = function () {
-  this.socket = new WebSocket("ws://localhost:5000/api";
+  this.socket = new WebSocket("ws://localhost:5000/api");
+  this.socket.onmessage = _.bind(this._onMessage, this);
+};
+
+Controller.prototype._pushUpdate = function () {
+  this.socket.send(JSON.stringify({
+    data: {
+      orientation: this.currentOrientation,
+      motion: this.currentMotion
+    }
+  }));
+};
+
+Controller.prototype._onMessage = function (msg) {
+  console.log(msg);
+};
+
+Controller.prototype._initStats = function () {
+  this.stats = new Stats();
+  // 0: fps, 1: ms
+  this.stats.setMode(0);
+  this.stats.domElement.style.cssText = 'position: absolute; right: 0; top: 0';
+  document.body.appendChild(this.stats.domElement);
 };
 
 </script>
 
 <script>
 
-var controller = new Controller;
+var controller = new Controller($(".controller")[0]);
 controller.initialize();
 
 </script>
