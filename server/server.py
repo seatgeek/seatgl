@@ -6,7 +6,7 @@ from flask import Flask, request, render_template
 app = Flask(__name__)
 app.debug = True
 
-clients = set()
+clients = {}
 consoles = []
 
 @app.route('/')
@@ -27,25 +27,24 @@ def consolesocket():
         message = ws.receive()
         ws.send(message)
 
+
 @app.route('/clients')
 def api():
     ws = request.environ['wsgi.websocket']
     clients.add(ws)
+    _id = request.args.get('id')
+    clients[_id] = ws
     print "clients: {0}".format(clients)
     while True:
         message = ws.receive()
         if message is None:
             gevent.sleep(0)
         for key, console in enumerate(consoles):
-            print "looping: {}".format(key)
             try:
                 console.send(message)
-                ws.send('ok {0}'.format(key))
             except:
                 print 'client disconnected'
                 # clients.remove(client)
-
-        gevent.sleep(0.1)
 
 if __name__ == '__main__':
     http_server = WSGIServer(('0.0.0.0', 5000), app, handler_class=WebSocketHandler)

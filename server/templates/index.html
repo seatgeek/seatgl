@@ -9,7 +9,7 @@
                 return false;
             });
             if ("WebSocket" in window) {
-                ws = new WebSocket("ws://localhost:5000/clients");
+                ws = new WebSocket("ws://localhost:5000/clients?id=" + Math.floor((Math.random()*100)+1));
                 ws.onmessage = function (msg) {
                     $("#log").append("<p>"+msg.data+"</p>")
                 };
